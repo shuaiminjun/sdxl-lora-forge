@@ -2,6 +2,11 @@
 
 # sdxl-lora-forge
 
+> **Status** — early-stage, actively developed. Feedback, corrections and "you got this wrong" are all welcome: **shuaiminjun541@gmail.com**
+>
+> Built with heavy AI assistance. Nothing here is a claim of state-of-the-art results: the numbers in this README are what I measured on one 20 GB card, and the failures are documented alongside them.
+
+
 **小数据集 LoRA 的"先检查、再训练"工具链**：数据集质检、caption 合成、sd-scripts 命令构建、显存可行性估算。零依赖（图像头解析自己写的，不需要 Pillow）。
 
 ```bash
