@@ -40,10 +40,31 @@ def cmd_caption(args) -> int:
     return 0
 
 
+# 常用底座预设：名字 -> (权重文件名, 权重体积 GB)
+# 体积用于显存估算——动画底座和写实底座的文件大小差 0.5~1 GB，估错就会误判 OOM。
+BASE_PRESETS = {
+    "sdxl-base": ("sd_xl_base_1.0.safetensors", 6.9),
+    "animagine-4": ("animagine-xl-4.0-opt.safetensors", 6.6),
+    "animagine-3.1": ("animagine-xl-3.1.safetensors", 6.6),
+    "anything-xl": ("AnythingXL_xl.safetensors", 6.5),
+}
+
+
+def resolve_base(spec: str) -> tuple[str, float]:
+    """把 --base 解析成 (权重文件, 体积 GB)。
+
+    既接受预设名（animagine-4），也接受任意 .safetensors 路径；体积未知时按 6.9 GB 估。
+    """
+    if spec in BASE_PRESETS:
+        return BASE_PRESETS[spec]
+    return (spec, 6.9)
+
+
 def cmd_train(args) -> int:
+    base_file, base_gb = resolve_base(args.base_model)
     cfg = TrainConfig(
         sd_scripts=args.sd_scripts,
-        pretrained_model=args.base_model,
+        pretrained_model=base_file,
         dataset_dir=args.dir,
         output_name=args.name,
         output_dir=args.out_dir,
@@ -54,8 +75,8 @@ def cmd_train(args) -> int:
         max_train_steps=args.steps,
         batch_size=args.batch,
     )
-    est = estimate_vram_gb(cfg)
-    print(render(cfg, vram_limit_gb=args.vram), flush=True)
+    est = estimate_vram_gb(cfg, base_model_gb=base_gb)
+    print(render(cfg, vram_limit_gb=args.vram, base_model_gb=base_gb), flush=True)
     if est["total_gb"] > args.vram:
         print(f"\n[退出码 3] 估算 {est['total_gb']} GB 超过 {args.vram} GB，建议降分辨率或开 gradient checkpointing",
               file=sys.stderr)
@@ -86,7 +107,8 @@ def main(argv: list[str] | None = None) -> int:
     t.add_argument("--dir", required=True)
     t.add_argument("--name", required=True)
     t.add_argument("--out-dir", default="loras")
-    t.add_argument("--base-model", default="sd_xl_base_1.0.safetensors")
+    t.add_argument("--base-model", "--base", dest="base_model", default="sdxl-base",
+                   help="preset (sdxl-base | animagine-4 | animagine-3.1 | anything-xl) or a .safetensors path")
     t.add_argument("--sd-scripts", default="sd-scripts")
     t.add_argument("--res", type=int, default=1024)
     t.add_argument("--rank", type=int, default=32)

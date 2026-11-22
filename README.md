@@ -150,3 +150,31 @@ tests/
 ## License
 
 MIT
+
+## 换底座（同一个 LoRA 工具链，换 base 就行）
+
+底座是**参数**，不是代码。`train` 的 `--base` / `--base-model` 接受预设名或任意 `.safetensors` 路径：
+
+| 预设 | 权重 | 体积 |
+|---|---|---|
+| `sdxl-base`（默认） | `sd_xl_base_1.0.safetensors` | 6.9 GB |
+| `animagine-4` | `animagine-xl-4.0-opt.safetensors` | 6.6 GB |
+| `animagine-3.1` | `animagine-xl-3.1.safetensors` | 6.6 GB |
+| `anything-xl` | `AnythingXL_xl.safetensors` | 6.5 GB |
+
+```bash
+# 写实底座
+python -m forge train --dir ./data --name mysdxl --base sdxl-base
+# 动画底座（同一个数据集，显存估算会按 6.6 GB 重算）
+python -m forge train --dir ./data --name myanime --base animagine-4
+# 自己的底座
+python -m forge train --dir ./data --name myown --base ./models/my-anime-xl.safetensors
+```
+
+**为什么体积要参与估算**：显存估算是 `权重 + 激活 + LoRA 状态 + 余量`，换底座只影响第一项。
+文件大小差 0.3~0.5 GB 就足以让"刚好卡 20 GB"的判断反过来，所以预设里带着体积，
+`render()` 也会把实际用的底座名打在第一行。
+
+**LoRA 能不能跨底座用**：结构相同的 SDXL 系底座（SDXL base / AnimagineXL / AnythingXL）
+之间 LoRA 可以直接互相加载，但**效果会变**——在 A 底训的角色放到 B 底，线条/配色会带 B 的
+先验（实测：SDXL base 训的动画角色放到动画底座上，画质明显变好，发色也更稳）。

@@ -57,3 +57,27 @@ def test_render_says_whether_it_fits():
 def test_render_lists_problems():
     out = render(TrainConfig(resolution=1000, max_train_steps=50), vram_limit_gb=20.0)
     assert "PROBLEMS" in out and "multiple of 64" in out
+
+
+def test_base_preset_changes_weights_and_vram():
+    """换底座要真的换掉权重名，并且按新底座的体积重新估算显存。"""
+    from forge.cli import resolve_base
+    from forge.train_cmd import TrainConfig, estimate_vram_gb, render
+
+    f1, g1 = resolve_base("sdxl-base")
+    f2, g2 = resolve_base("animagine-4")
+    assert f1.endswith("sd_xl_base_1.0.safetensors")
+    assert f2.endswith("animagine-xl-4.0-opt.safetensors")
+    assert g2 < g1, "动画底座比 sdxl base 小，体积没理由更大"
+
+    cfg = TrainConfig(dataset_dir="./d", output_name="t", pretrained_model=f2)
+    est = estimate_vram_gb(cfg, base_model_gb=g2)
+    assert est["weights_gb"] == round(g2, 2)
+    assert f2 in render(cfg, base_model_gb=g2)
+
+
+def test_base_missing_preset_passthrough():
+    """不是预设名就当成路径原样用，体积按默认估。"""
+    from forge.cli import resolve_base
+    f, g = resolve_base("my-own-anime.safetensors")
+    assert f == "my-own-anime.safetensors" and g == 6.9

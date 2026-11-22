@@ -109,11 +109,13 @@ def build_command(cfg: TrainConfig) -> list[str]:
     return argv
 
 
-def render(cfg: TrainConfig, vram_limit_gb: float = 20.0) -> str:
-    est = estimate_vram_gb(cfg)
+def render(cfg: TrainConfig, vram_limit_gb: float = 20.0,
+           base_model_gb: float = 6.9) -> str:
+    est = estimate_vram_gb(cfg, base_model_gb=base_model_gb)
     problems = cfg.validate()
     fits = est["total_gb"] <= vram_limit_gb
     lines = [
+        "# base: {base}".format(base=cfg.pretrained_model),
         "# estimated VRAM: {total_gb} GB / card {limit} GB  ->  {verdict}".format(
             total_gb=est["total_gb"], limit=vram_limit_gb,
             verdict="OK" if fits else "WILL NOT FIT"),
