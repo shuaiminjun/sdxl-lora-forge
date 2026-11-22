@@ -10,9 +10,9 @@
 **小数据集 LoRA 的"先检查、再训练"工具链**：数据集质检、caption 合成、sd-scripts 命令构建、显存可行性估算。零依赖（图像头解析自己写的，不需要 Pillow）。
 
 ```bash
-python -m forge check --dir data/lora/whale           # 这个文件夹能不能训
-python -m forge caption --dir data/lora/whale --trigger hsmwhale --base "a chibi anime girl"
-python -m forge train --dir data/lora/whale --name whale_v4 --res 768 --rank 32 --steps 900
+python -m forge check --dir data/lora/my-character           # 这个文件夹能不能训
+python -m forge caption --dir data/lora/my-character --trigger mychar --base "a girl with silver hair and a red scarf"
+python -m forge train --dir data/lora/my-character --name mychar_v1 --res 768 --rank 32 --steps 900
 ```
 
 最后一条不会真的训练，它**打印命令 + 显存估算**，装不下就直接以退出码 3 结束：
@@ -45,7 +45,7 @@ accelerate launch sd-scripts/sdxl_train_network.py --pretrained_model_name_or_pa
 ### `check` — 数据集质检
 
 ```bash
-python -m forge check --dir data/lora/whale
+python -m forge check --dir data/lora/my-character
 ```
 
 ```
@@ -74,8 +74,8 @@ python -m forge check --dir data/lora/whale
 规则只有一条硬的：**触发词必须是第一个 token，且后面紧跟类别名词**。
 
 ```bash
-python -m forge caption --dir data/lora/whale --trigger hsmwhale --base "a chibi anime girl"
-# hsmwhale, a chibi anime girl
+python -m forge caption --dir data/lora/my-character --trigger mychar --base "a girl with silver hair and a red scarf"
+# mychar, a girl with silver hair and a red scarf
 ```
 
 - 触发词校验：小写、字母开头、3~32 字符、无空格（否则 tokenizer 会把它拆成已有词，等于没学）
