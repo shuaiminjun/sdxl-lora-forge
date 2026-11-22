@@ -1,3 +1,5 @@
+[![ci](https://github.com/shuaiminjun/sdxl-lora-forge/actions/workflows/ci.yml/badge.svg)](https://github.com/shuaiminjun/sdxl-lora-forge/actions/workflows/ci.yml) [![python](https://img.shields.io/badge/python-3.10%2B-blue)]() [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 # sdxl-lora-forge
 
 **小数据集 LoRA 的"先检查、再训练"工具链**：数据集质检、caption 合成、sd-scripts 命令构建、显存可行性估算。零依赖（图像头解析自己写的，不需要 Pillow）。

@@ -1,0 +1,38 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: python -m pip install --upgrade pip pytest
+      - name: Run tests
+        run: python -m pytest tests -q
+      - name: CLI smoke test
+        run: |
+          mkdir -p /tmp/ds
+          python - <<'PY'
+          import struct, zlib, pathlib
+          def png(p, w, h, c):
+              def ch(t, d): return struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t+d) & 0xffffffff)
+              raw = b"".join(b"\x00" + bytes([c]) * w for _ in range(h))
+              p.write_bytes(b"\x89PNG\r\n\x1a\n" + ch(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 0, 0, 0, 0)) + ch(b"IDAT", zlib.compress(raw)) + ch(b"IEND", b""))
+          for i in range(12):
+              png(pathlib.Path(f"/tmp/ds/{i:02d}.png"), 1024, 1024, i * 5)
+              pathlib.Path(f"/tmp/ds/{i:02d}.txt").write_text("tok, a photo")
+          PY
+          python -m forge check --dir /tmp/ds --json
+          python -m forge caption --dir /tmp/ds --trigger hsmtest --base "a photo"
+          python -m forge train --dir /tmp/ds --name t --res 768 --steps 500
