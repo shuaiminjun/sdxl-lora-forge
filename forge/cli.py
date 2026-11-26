@@ -84,6 +84,19 @@ def cmd_train(args) -> int:
     return 0
 
 
+def cmd_train_local(args) -> int:
+    from forge import standalone
+
+    return standalone.main(["--data", args.data, "--out", args.out, "--base", args.base,
+                            "--res", str(args.res), "--height", str(args.height),
+                            "--steps", str(args.steps), "--epochs", str(args.epochs),
+                            "--rank", str(args.rank), "--lr", str(args.lr),
+                            "--dropout", str(args.dropout), "--tag", args.tag,
+                            "--log-every", str(args.log_every)]
+                           + (["--train-te"] if args.train_te else [])
+                           + (["--dry-run"] if args.dry_run else []))
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="forge", description="small-dataset LoRA tooling")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -117,6 +130,25 @@ def main(argv: list[str] | None = None) -> int:
     t.add_argument("--batch", type=int, default=1)
     t.add_argument("--vram", type=float, default=20.0)
     t.set_defaults(func=cmd_train)
+
+    s = sub.add_parser("train-local",
+                       help="train here, without sd-scripts (diffusers + peft)")
+    s.add_argument("--data", required=True, help="dataset dir: images + matching .txt")
+    s.add_argument("--out", required=True, help="output .safetensors")
+    s.add_argument("--base", required=True, help="base checkpoint .safetensors")
+    s.add_argument("--res", type=int, default=1024, help="width (also the side of a square)")
+    s.add_argument("--height", type=int, default=0, help="height for portrait/landscape; 0 = square")
+    s.add_argument("--steps", type=int, default=0, help="0 = estimate from image count")
+    s.add_argument("--epochs", type=float, default=13.0)
+    s.add_argument("--rank", type=int, default=32)
+    s.add_argument("--lr", type=float, default=3e-5)
+    s.add_argument("--dropout", type=float, default=0.0)
+    s.add_argument("--tag", default="mychar")
+    s.add_argument("--train-te", action="store_true",
+                   help="also train the text encoders (slower, more self-contained trigger)")
+    s.add_argument("--log-every", type=int, default=20)
+    s.add_argument("--dry-run", action="store_true")
+    s.set_defaults(func=cmd_train_local)
 
     args = ap.parse_args(argv)
     return args.func(args)
