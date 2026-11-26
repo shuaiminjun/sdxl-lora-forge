@@ -4,7 +4,7 @@
 
 > **Status** — early-stage, actively developed. Feedback, corrections and "you got this wrong" are all welcome: **shuaiminjun541@gmail.com**
 >
-> Built with heavy AI assistance. The numbers below are what I measured on one 20 GB AMD card; where something does not work, that is written down too.
+> Built with heavy AI assistance: the code was largely written by AI, and what I did was decide what to build, run it, measure it, and keep the parts that held up. Nothing here claims state-of-the-art — the numbers come from one 20 GB card, and the versions that failed are written down next to the ones that worked. Corrections are genuinely welcome.
 
 **给 SDXL 系模型训一个小数据集角色 LoRA 的工具箱。** 四件事：
 
